@@ -133,7 +133,7 @@ Status WindowCovering::Init() {
                                               [this](HAPAccessoryServerRef *, const HAPBoolCharacteristicWriteRequest *,
                                                      bool value) {
                                                          if (value) {
-                                                             LOG(LL_INFO, ("WC %d: Hold position", id()));
+                                                             LOG(LL_DEBUG, ("WC %d: Hold position", id()));
                                                              SetInternalState(State::kStop);
                                                          }
                                                          return kHAPError_None;
@@ -167,14 +167,14 @@ Status WindowCovering::Init() {
             break;
     }
     if (cfg_->calibrated) {
-        LOG(LL_INFO, ("WC %d: mp %.2f, mt_ms %d, cur_pos %.2f", id(),
+        LOG(LL_DEBUG, ("WC %d: mp %.2f, mt_ms %d, cur_pos %.2f", id(),
                       cfg_->move_power, cfg_->move_time_ms, cur_pos_));
     } else if (cfg_->man_cal) {
-        LOG(LL_INFO, ("WC %d: mp %.2f, mt_ms %d, mtlpos_ms %d, cur_pos %.2f", id(),
+        LOG(LL_DEBUG, ("WC %d: mp %.2f, mt_ms %d, mtlpos_ms %d, cur_pos %.2f", id(),
                       cfg_->move_power, cfg_->move_time_ms,
                       cfg_->move_time_limit_pos_ms, cur_pos_));
     } else {
-        LOG(LL_INFO, ("WC %d: not calibrated", id()));
+        LOG(LL_DEBUG, ("WC %d: not calibrated", id()));
     }
     state_timer_.Reset(100, MGOS_TIMER_REPEAT);
     return Status::OK();
@@ -350,7 +350,7 @@ void WindowCovering::SaveState() {
 void WindowCovering::SetInternalState(State new_state) {
     if (state_ == new_state) return;
     begin_ = mgos_uptime_micros();
-    LOG(LL_INFO, ("WC %d: State: %s -> %s (%d -> %d). Begin(ms) = %d.", id(), StateStr(state_),
+    LOG(LL_DEBUG, ("WC %d: State: %s -> %s (%d -> %d). Begin(ms) = %d.", id(), StateStr(state_),
                   StateStr(new_state), (int) state_, (int) new_state, (int) begin_));
     state_ = new_state;
 }
@@ -369,7 +369,7 @@ void WindowCovering::SetCurPos(float new_cur_pos, float p) {
 void WindowCovering::SetTgtPos(float new_tgt_pos, const char *src) {
     new_tgt_pos = TrimPos(new_tgt_pos);
     if (new_tgt_pos == tgt_pos_) return;
-    LOG(LL_INFO,
+    LOG(LL_DEBUG,
         ("WC %d: Tgt pos %.2f -> %.2f (%s)", id(), tgt_pos_, new_tgt_pos, src));
     tgt_pos_ = new_tgt_pos;
     tgt_pos_char_->RaiseEvent();
@@ -394,7 +394,7 @@ void WindowCovering::HAPSetTgtPos(float value) {
         lmd = Direction::kNone;
     }
     
-    LOG(LL_INFO, ("WC %d: HAPSetTgtPos %.2f cur %.2f tgt %.2f lmd %d", id(),
+    LOG(LL_DEBUG, ("WC %d: HAPSetTgtPos %.2f cur %.2f tgt %.2f lmd %d", id(),
                   value, cur_pos_, tgt_pos_, (int) lmd));
     // If the specified position is intermediate or we have no basis for guessing,
     // just do what we are told.
@@ -483,7 +483,7 @@ void WindowCovering::ExecuteMoveState() {
         obstruction_detected_ = false;
         obst_char_->RaiseEvent();
     }
-    LOG(LL_INFO, ("[Starting] move start pos = %.2f -> %.2f", move_start_pos_, cur_pos_));
+    LOG(LL_DEBUG, ("[Starting] move start pos = %.2f -> %.2f", move_start_pos_, cur_pos_));
     move_start_pos_ = cur_pos_;
     obstruction_begin_ = 0;
     Move(dir);
@@ -496,7 +496,7 @@ void WindowCovering::ExecuteRampUpState() {
     if (!CheckPowerAndStopIfFailed(pm, p)) {
         return;
     }
-    LOG(LL_INFO, ("[RampUp] Power = %.2f -> %.2f", p, cfg_->move_power));
+    LOG(LL_DEBUG, ("[RampUp] Power = %.2f -> %.2f", p, cfg_->move_power));
     if (cfg_->man_cal || p >= cfg_->move_power * 0.75) {
         SetInternalState(State::kMoving);
     } else {
@@ -521,7 +521,7 @@ void WindowCovering::ExecuteMovingState() {
     float moveDivider = move_ms_per_pct_;
     if (moving_to_limit_pos && cfg_->man_cal) {
         moveDivider = move_limit_ms_per_pct_;
-        LOG(LL_INFO, ("[Moving] Moving to limit position ON with manual calibration ON. Divider = %.2f", moveDivider));
+        LOG(LL_DEBUG, ("[Moving] Moving to limit position ON with manual calibration ON. Divider = %.2f", moveDivider));
     }
     // if manually calibrated move `move_to_end_time_ms` instead of
     // `move_time_ms`, in order to really reach the limit
@@ -529,7 +529,7 @@ void WindowCovering::ExecuteMovingState() {
     // positions by themselves, only).
     float pos_diff = moving_time_ms / moveDivider;
     //TODO: have min/max values?
-    LOG(LL_INFO, ("[Moving] MovingTime(Ms) %.2f. Move Divider: %.2f, POS_DIFF %.2f", moving_time_ms, moveDivider, pos_diff));
+    LOG(LL_DEBUG, ("[Moving] MovingTime(Ms) %d. Move Divider: %.2f, POS_DIFF %.2f", moving_time_ms, moveDivider, pos_diff));
     // ADD LOG HERE
     float new_cur_pos = (moving_dir_ == Direction::kOpen ? move_start_pos_ + pos_diff : move_start_pos_ - pos_diff);
     auto *pm = (moving_dir_ == Direction::kOpen ? pm_open_ : pm_close_);
@@ -563,8 +563,8 @@ void WindowCovering::ExecuteMovingState() {
         if (cfg_->man_cal) {
             if (IsTargetPositionReached(0.5) || (moving_time_ms < cfg_->max_ramp_up_time_ms)) {
                 // Still moving or ramping up.
-                LOG(LL_INFO, ("[Moving] STILL MOVING. TGT %d, CURR: %d. (NOW(ms): %d, BEGIN(ms): %d)", (int)tgt_pos_, (int)cur_pos_, now / 1000, begin_ / 1000));
-                break;
+                LOG(LL_DEBUG, ("[Moving] STILL MOVING. TGT %d, CURR: %d. (NOW(ms): %d, BEGIN(ms): %d)", (int)tgt_pos_, (int)cur_pos_, (int)(now / 1000), (int)(begin_ / 1000)));
+                return;
             } else {
                 float pos = (moving_dir_ == Direction::kOpen ? kFullyOpen : kFullyClosed);
                 SetCurPos(pos, p);
@@ -608,7 +608,7 @@ void WindowCovering::RunOnce() {
         case State::kPreCal0: {
             out_open_->SetState(false, ss);
             out_close_->SetState(false, ss);
-            LOG(LL_INFO, ("Begin calibration"));
+            LOG(LL_DEBUG, ("Begin calibration"));
             cfg_->calibrated = false;
             SaveState();
             out_open_->SetState(true, ss);
@@ -660,7 +660,7 @@ void WindowCovering::RunOnce() {
                 move_time_ms > cfg_->max_ramp_up_time_ms) {
                 out_close_->SetState(false, StateStr(state_));
                 float move_power = p_sum_ / p_num_;
-                LOG(LL_INFO, ("WC %d: calibration done, move_time %d, move_power %.3f",
+                LOG(LL_DEBUG, ("WC %d: calibration done, move_time %d, move_power %.3f",
                               id(), move_time_ms, move_power));
                 cfg_->move_time_ms = move_time_ms;
                 cfg_->move_power = move_power;

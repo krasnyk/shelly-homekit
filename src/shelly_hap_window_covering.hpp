@@ -105,6 +105,13 @@ class WindowCovering : public Component, public mgos::hap::Service {
 
   Direction GetDesiredMoveDirection();
   void Move(Direction dir);
+    
+    bool CheckPowerAndStopIfFailed(PowerMeter *pm, float &power);
+    void ExecuteIdleNoneState();
+    void ExecuteMoveState();
+    void ExecuteRampUpState();
+    bool IsTargetPositionReached(float precision);
+    void ExecuteMovingState();
 
   void RunOnce();
 

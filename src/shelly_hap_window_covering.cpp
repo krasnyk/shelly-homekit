@@ -190,11 +190,10 @@ std::string WindowCovering::name() const {
 
 StatusOr<std::string> WindowCovering::GetInfo() const {
     return mgos::SPrintf(
-                         "c:%d mp:%.2f ip:%.2f mt_ms:%d cp:%.2f tp:%.2f md:%d lmd:%d lemd:%d lhmd:%d",
+                         "c:%d mp:%.2f ip:%.2f mt_ms:%d cp:%.2f tp:%.2f md:%d lmd:%d",
                          cfg_->calibrated, cfg_->move_power, cfg_->idle_power_thr,
                          cfg_->move_time_ms, cur_pos_, tgt_pos_, (int) moving_dir_,
-                         (int) last_move_dir_, (int) last_ext_move_dir_,
-                         (int) last_hap_move_dir_);
+                         (int) last_move_dir_);
 }
 
 StatusOr<std::string> WindowCovering::GetInfoJSON() const {
@@ -449,7 +448,7 @@ void WindowCovering::Move(Direction dir) {
     }
 }
 
-bool WindowCovering::CheckPowerAndStopIfFailed(float &power) {
+bool WindowCovering::CheckPowerAndStopIfFailed(PowerMeter *pm, float &power) {
     auto pmv = pm->GetPowerW();
     bool result = pmv.ok();
     if (result) {
@@ -463,7 +462,6 @@ bool WindowCovering::CheckPowerAndStopIfFailed(float &power) {
 }
 
 void WindowCovering::ExecuteIdleNoneState() {
-    const char *ss = StateStr(state_);
     if (tgt_state_ != State::kNone && tgt_state_ != state_) {
         SetInternalState(tgt_state_);
         tgt_state_ = State::kNone;
@@ -473,7 +471,6 @@ void WindowCovering::ExecuteIdleNoneState() {
 }
 
 void WindowCovering::ExecuteMoveState() {
-    const char *ss = StateStr(state_);
     Direction dir = GetDesiredMoveDirection();
     if (dir == Direction::kNone ||
         (dir == Direction::kClose && cur_pos_ == kFullyClosed) ||
@@ -494,10 +491,9 @@ void WindowCovering::ExecuteMoveState() {
 }
 
 void WindowCovering::ExecuteRampUpState() {
-    const char *ss = StateStr(state_);
     auto *pm = (moving_dir_ == Direction::kOpen ? pm_open_ : pm_close_);
     float p = -1;
-    if (!CheckPowerAndStopIfFailed(p)) {
+    if (!CheckPowerAndStopIfFailed(pm, p)) {
         return;
     }
     LOG(LL_INFO, ("[RampUp] Power = %.2f -> %.2f", p, cfg_->move_power));
@@ -518,7 +514,6 @@ bool WindowCovering::IsTargetPositionReached(float precision) {
 }
 
 void WindowCovering::ExecuteMovingState() {
-    const char *ss = StateStr(state_);
     bool moving_to_limit_pos = ((tgt_pos_ == kFullyOpen && moving_dir_ == Direction::kOpen) ||
                                 (tgt_pos_ == kFullyClosed && moving_dir_ == Direction::kClose));
     int64_t now = mgos_uptime_micros();
@@ -539,8 +534,8 @@ void WindowCovering::ExecuteMovingState() {
     float new_cur_pos = (moving_dir_ == Direction::kOpen ? move_start_pos_ + pos_diff : move_start_pos_ - pos_diff);
     auto *pm = (moving_dir_ == Direction::kOpen ? pm_open_ : pm_close_);
     float p = -1;
-    if (!CheckPowerAndStopIfFailed(p)) {
-        break;
+    if (!CheckPowerAndStopIfFailed(pm, p)) {
+        return;
     }
     SetCurPos(new_cur_pos, p);
     float too_much_power = cfg_->move_power * cfg_->obstruction_power_coeff;
@@ -559,7 +554,7 @@ void WindowCovering::ExecuteMovingState() {
         obst_char_->RaiseEvent();
         tgt_state_ = State::kError;
         SetInternalState(State::kStop);
-        break;
+        return;
     }
     Direction want_move_dir = GetDesiredMoveDirection();
     bool reverse = (want_move_dir != moving_dir_ && want_move_dir != Direction::kNone);
@@ -578,7 +573,7 @@ void WindowCovering::ExecuteMovingState() {
             if (p > cfg_->idle_power_thr || (cfg_->man_cal && moving_time_ms <= too_long_time) || !IsTargetPositionReached(0.5) ||
                 (moving_time_ms < cfg_->max_ramp_up_time_ms)) {
                 // Still moving or ramping up.
-                break;
+                return;
             } else {
                 float pos = (moving_dir_ == Direction::kOpen ? kFullyOpen : kFullyClosed);
                 SetCurPos(pos, p);
@@ -586,7 +581,7 @@ void WindowCovering::ExecuteMovingState() {
         }
     } else if (want_move_dir == moving_dir_) {
         // Still moving.
-        break;
+        return;
     } else {
         // We stopped moving. Reconcile target position with current,
         // pretend we wanted to be exactly where we ended up.
@@ -700,7 +695,7 @@ void WindowCovering::RunOnce() {
         }
         case State::kStop: {
             Move(Direction::kNone);
-            SaveState();
+            //SaveState();
             SetInternalState(State::kStopping);
             break;
         }

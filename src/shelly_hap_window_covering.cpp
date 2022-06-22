@@ -398,17 +398,15 @@ void WindowCovering::HAPSetTgtPos(float value) {
                   value, cur_pos_, tgt_pos_, (int) lmd));
     // If the specified position is intermediate or we have no basis for guessing,
     // just do what we are told.
-    if ((value != kFullyClosed && value != kFullyOpen) ||
-        lmd == Direction::kNone) {
-        SetTgtPos(value, "HAP");
-    } else if ((value == kFullyClosed &&
+    if ((value == kFullyClosed &&
                 (cur_pos_ == kFullyClosed || tgt_pos_ == kFullyClosed)) ||
                (value == kFullyOpen &&
                 (cur_pos_ == kFullyOpen || tgt_pos_ == kFullyOpen))) {
         // Nothing to do.
     } else {
-        // This is most likely a tap on the tile.
-        HandleInputSingle("HAPalt");
+        // handles tap on the tile during/without movement
+        // handles slide on the tile and drag to the beginning/end and dropping it there
+        SetTgtPos(value, "HAP");
     }
     last_hap_set_tgt_pos_ = mgos_uptime_micros();
     // Run state machine immediately to improve reaction time,
@@ -529,7 +527,8 @@ void WindowCovering::ExecuteMovingState() {
     // positions by themselves, only).
     float pos_diff = moving_time_ms / moveDivider;
     //TODO: have min/max values?
-    LOG(LL_DEBUG, ("[Moving] MovingTime(Ms) %d. Move Divider: %.2f, POS_DIFF %.2f", moving_time_ms, moveDivider, pos_diff));
+    LOG_EVERY_N(LL_DEBUG, 8,
+                ("[Moving] MovingTime(Ms) %d. Move Divider: %.2f, POS_DIFF %.2f", moving_time_ms, moveDivider, pos_diff));
     // ADD LOG HERE
     float new_cur_pos = (moving_dir_ == Direction::kOpen ? move_start_pos_ + pos_diff : move_start_pos_ - pos_diff);
     auto *pm = (moving_dir_ == Direction::kOpen ? pm_open_ : pm_close_);
@@ -561,7 +560,7 @@ void WindowCovering::ExecuteMovingState() {
     // If moving to one of the limit positions, keep moving until no current is flowing.
     if (moving_to_limit_pos && !reverse) {
         if (cfg_->man_cal) {
-            if (IsTargetPositionReached(0.5) || (moving_time_ms < cfg_->max_ramp_up_time_ms)) {
+            if (!IsTargetPositionReached(0.5) || (moving_time_ms < cfg_->max_ramp_up_time_ms)) {
                 // Still moving or ramping up.
                 LOG(LL_DEBUG, ("[Moving] STILL MOVING. TGT %d, CURR: %d. (NOW(ms): %d, BEGIN(ms): %d)", (int)tgt_pos_, (int)cur_pos_, (int)(now / 1000), (int)(begin_ / 1000)));
                 return;
@@ -596,7 +595,7 @@ void WindowCovering::ExecuteMovingState() {
 void WindowCovering::RunOnce() {
     const char *ss = StateStr(state_);
     if (state_ != State::kIdle) {
-        LOG(LL_DEBUG, ("WC %d: %s, md %d, pos %.2f -> %.2f", id(), ss,
+        LOG_EVERY_N(LL_INFO, 8, ("WC %d: %s, md %d, pos %.2f -> %.2f", id(), ss,
                        (int) moving_dir_, cur_pos_, tgt_pos_));
     }
     switch (state_) {
@@ -695,7 +694,7 @@ void WindowCovering::RunOnce() {
         }
         case State::kStop: {
             Move(Direction::kNone);
-            //SaveState();
+            SaveState();
             SetInternalState(State::kStopping);
             break;
         }

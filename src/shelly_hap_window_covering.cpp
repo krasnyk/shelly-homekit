@@ -496,6 +496,7 @@ void WindowCovering::ExecuteRampUpState() {
     }
     LOG(LL_DEBUG, ("[RampUp] Power = %.2f -> %.2f", p, cfg_->move_power));
     if (cfg_->man_cal || p >= cfg_->move_power * 0.75) {
+        SaveState();
         SetInternalState(State::kMoving);
     } else {
         int elapsed_us_ms = (mgos_uptime_micros() - begin_) / 1000;

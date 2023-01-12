@@ -184,16 +184,6 @@ el("hap_reset_btn").onclick = function() {
       });
 };
 
-el("fw_upload_btn").onclick = function() {
-  let ff = el("fw_select_file").files;
-  if (ff.length == 0) {
-    alert("No files selected");
-    return false;
-  }
-  uploadFW(ff[0], el("fw_spinner"), el("update_status"));
-  return false;
-};
-
 el("wifi_save_btn").onclick = function() {
   el("wifi_spinner").className = "spin";
   let sta_static = el("wifi_ip_en").checked;
@@ -691,7 +681,7 @@ function updateComponent(cd) {
         selectIfNotModified(el(c, "svc_type"), cd.svc_type);
         if (cd.svc_type == 3) {
           selectIfNotModified(el(c, "valve_type"), cd.valve_type);
-          el(c, "valve_type_container").style.display = "block";
+          el(c, "valve_type_container").style.display = "flex";
           updateInnerText(el(c, "valve_type_label"), "Valve Type:");
         } else {
           el(c, "valve_type_container").style.display = "none";
@@ -702,7 +692,7 @@ function updateComponent(cd) {
         selectIfNotModified(el(c, "in_mode"), cd.in_mode);
         if (cd.in_mode != 3) {
           checkIfNotModified(el(c, "in_inverted"), cd.in_inverted);
-          el(c, "in_inverted_container").style.display = "block";
+          el(c, "in_inverted_container").style.display = "flex";
         }
         if (!cd.hdim) {
           if (el(c, "in_mode_5")) el(c, "in_mode_5").remove();
@@ -916,12 +906,12 @@ function updateStaticIPVisibility() {
 function updateElement(key, value, info) {
   switch (key) {
     case "uptime":
-      el("uptime_container").style.display = "block";
+      el("uptime_container").style.display = "flex";
       updateInnerText(el("uptime"), durationStr(value));
       break;
     case "model":
       if (value.endsWith("RGBW2")) {
-        el("sys_mode_container").style.display = "block";
+        el("sys_mode_container").style.display = "flex";
         if (el("sys_mode_0")) el("sys_mode_0").remove();
       } else {
         if (el("sys_mode_3")) el("sys_mode_3").remove();
@@ -974,12 +964,12 @@ function updateElement(key, value, info) {
     case "wifi_status":
     case "mac_address":
       updateInnerText(el(key), value);
-      el(`${key}_container`).style.display = (value ? "block" : "none");
+      el(`${key}_container`).style.display = (value ? "flex" : "none");
       if (key == "wifi_conn_rssi" && value != 0) {
         // These only make sense if we are connected to WiFi.
-        el("update_container").style.display = "block";
+        el("update_container").style.display = "flex";
         el("revert_to_stock_container").style.display =
-            (!updateInProgress ? "block" : "none");
+            (!updateInProgress ? "flex" : "none");
         // We set external image URL to prevent loading it when not on
         // WiFi, as it slows things down.
         if (el("donate_form_submit").src == "") {
@@ -1045,14 +1035,14 @@ function updateElement(key, value, info) {
       break;
     case "wc_avail":
       if (value) {
-        el("sys_mode_container").style.display = "block";
+        el("sys_mode_container").style.display = "flex";
       } else if (el("sys_mode_1")) {
         el("sys_mode_1").remove();
       }
       break;
     case "gdo_avail":
       if (value) {
-        el("sys_mode_container").style.display = "block";
+        el("sys_mode_container").style.display = "flex";
       } else if (el("sys_mode_2")) {
         el("sys_mode_2").remove();
       }
@@ -1063,7 +1053,7 @@ function updateElement(key, value, info) {
     case "sys_temp":
       if (value !== undefined) {
         updateInnerText(el("sys_temp"), value);
-        el("sys_temp_container").style.display = "block";
+        el("sys_temp_container").style.display = "flex";
       } else {
         el("sys_temp_container").style.display = "none";
       }
@@ -1251,7 +1241,7 @@ function connectWebSocket() {
           console.log(`Auth required for ${ri.method}`, authReq, ar);
         } else {
           console.log(`Auth failed for ${ri.method}`, authReq);
-          el("forgot_password").style.display = "block";
+          el("forgot_password").style.display = "flex";
           setVar(authInfoKey, undefined);
         }
         if (ar) {
@@ -1462,6 +1452,68 @@ el("sec_save_btn").onclick = function() {
 
 // noinspection JSUnusedGlobalSymbols
 function onLoad() {
+    let showAllEntries = Object.fromEntries((new URLSearchParams(document.location.search)).entries()).showall;
+    if (showAllEntries === 'true') {
+        var elements = [
+            "auth_container",
+            "gs_container",
+            "sys_mode_container",
+            "homekit_container",
+            "hap_setup_info",
+            "wifi_container",
+            "sec_container",
+            "sys_container",
+            "firmware_container",
+            "revert_msg",
+            "donate_form_submit",
+            "sw_template",
+            "power_stats_container",
+            "ssw_template",
+            "di_template",
+            "sensor_template",
+            "wc_template",
+            "ts_template",
+            "gdo_template",
+            "rgb_template",
+            "power_stats_container"
+        ];
+        for (let i = 0; i < elements.length; ++i) {
+            el(elements[i]).style.display = "block";
+        }
+        var flexElements = ["in_inverted_container",
+            "uptime_container",
+            "sys_temp_container",
+            "valve_type_container",
+            "sys_mode_container",
+            "forgot_password",
+            "update_container",
+            "revert_to_stock_container"];
+        for (let i = 0; i < flexElements.length; ++i) {
+            el(flexElements[i]).style.display = "flex";
+        }
+        var inlineEls = [
+            "notify_disconnected",
+            "notify_update",
+            "notify_overheat",
+            "notify_failsafe"];
+        for (let i = 0; i < inlineEls.length; ++i) {
+            el(inlineEls[i]).style.display = "inline";
+        }
+    }
+
+  el("fw_select_file").onclick = function () {
+    this.value = null;
+  };
+  
+  el("fw_select_file").onchange = function () {
+    let ff = el("fw_select_file").files;
+  if (ff.length == 0) {
+    alert("No files selected");
+    return false;
+  }
+  uploadFW(ff[0], el("fw_spinner"), el("update_status"));
+  return false;
+  };
   if (location.protocol != "file:") {
     if (location.pathname === "/ota") {
       let params = new URLSearchParams(location.search.substring(1));
@@ -1588,10 +1640,10 @@ function setUpdateInProgress(val) {
   updateInProgress = !!val;
   if (val) {
     el("components").innerHTML = "";
-    el("update_btn").style.display = "none";
-    el("revert_to_stock_container").style.display = "none";
     updateCommonVisibility(false);
   }
+  el("update_btn").style.display = val === true ? "none" : "flex";
+  el("revert_to_stock_container").style.display = val === true ? "none" : "flex";
 }
 
 function durationStr(d) {
@@ -1623,7 +1675,7 @@ async function downloadUpdate(fwURL, spinner, status) {
       .catch((error) => {
         spinner.className = "";
         console.log(error);
-        status.innerText = `Error downloading: ${error}`;
+        status.innerText = String.fromCodePoint(0x274C) + ` Error downloading: ${error}`;
         // Do not reset updateInProgress to make failure more prominent.
       });
 }
@@ -1631,6 +1683,7 @@ async function downloadUpdate(fwURL, spinner, status) {
 async function uploadFW(blob, spinner, status, ar) {
   setUpdateInProgress(true);
   spinner.className = "spin";
+  status.className = "status-ok";
   status.innerText = "Uploading...";
   let fd = new FormData();
   fd.append("file", blob);
@@ -1660,11 +1713,14 @@ async function uploadFW(blob, spinner, status, ar) {
         spinner.className = "";
         status.innerText = (respText ? respText : resp.statusText).trim();
         setVar("update_available", false);
+        setUpdateInProgress(false);
       })
       .catch((error) => {
         console.log("Fetch erorr:", error);
-        status.innerText = `Error uploading: ${error}`;
+        status.innerText = String.fromCodePoint(0x274C) + ` Error uploading: ${error}`;
+        status.className = "status-nok";
         spinner.className = "";
+        setUpdateInProgress(false);
         // Do not reset updateInProgress to make failure more prominent.
       });
 }
@@ -1718,11 +1774,13 @@ function checkUpdate() {
   let curVersion = lastInfo.version;
   let e = el("update_status");
   let se = el("update_btn_spinner");
+  let btn = el("update_btn_text");
   let errMsg =
       "Failed, check <a href=\"https://github.com/mongoose-os-apps/shelly-homekit/releases\">GitHub</a>.";
   e.innerText = "";
   se.className = "spin";
   console.log("Model:", model, "Version:", curVersion);
+  btn.innerText = "Checking...";
   fetch("https://rojer.me/files/shelly/update.json", {
     headers: {
       "X-Model": model,
@@ -1755,6 +1813,7 @@ function checkUpdate() {
           console.log("Update section not found:", model, curVersion, cfg);
           e.innerHTML = errMsg;
           se.className = "";
+          btn.innerText = "Check for update";
           return;
         }
         let updateAvailable = isNewer(latestVersion, curVersion);
@@ -1765,13 +1824,13 @@ function checkUpdate() {
         if (!updateAvailable) {
           e.innerText = "Up to date";
           se.className = "";
+          btn.innerText = "Check for update";
           return;
         }
         se.className = "";
-        e.innerHTML = `
-        Version ${latestVersion} is available.
-        See <a href="${relNotesURL}" target="_blank">release notes</a>.`
-        el("update_btn_text").innerText = "Install";
+        btn.innerText = "Check for update";
+        e.innerHTML = `<center>Version ${latestVersion} is available.<br/>See <a href="${relNotesURL}" target="_blank">release notes</a>.</center>`;
+        el("update_btn_text").innerText = "Install " + latestVersion;
         el("update_btn").onclick = function() {
           return downloadUpdate(
               updateURL, el("fw_spinner"), el("update_status"));
@@ -1781,6 +1840,7 @@ function checkUpdate() {
         console.log("Error", error);
         e.innerHTML = errMsg;
         se.className = "";
+        btn.innerText = "Check for update";
       });
 }
 

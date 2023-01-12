@@ -25,12 +25,62 @@ button {
   border-radius: 18px;
   border: none;
   cursor: pointer;
+  margin: 0px 0.5em 0px 0.5em;
   background: #0071e3;
+}
+
+.custom-file-upload {
+    color: white;
+    padding: 0.5em 1em 0.5em 1em;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    background: #0071e3;
+    display: flex !important;
+    justify-content: center;
+}
+
+input[type="file"] {
+    display: none;
 }
 
 .button-container{
   padding-top: 1em;
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.status-ok {
+  margin: 0;
+  display: flex;
+  align-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: darkgray;
+  justify-content: center;
+}
+
+.status-nok {
+  margin: 0;
+  display: flex;
+  align-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: red;
+  justify-content: center;
+}
+
+.temperature {
+  flex: 1;
+  text-align: right;
+  margin-right: 5px;
 }
 
 button label {
@@ -45,13 +95,14 @@ a, a:link, a:visited {
 }
 
 input[type=number], input[type=password], input[type=text] {
-  min-width: 150px;
-  padding: 3px 10px;
+  flex: 1;
+  padding: 3px 5px;
   position: relative;
   border: 1px solid #cdcdcd;
   border-color: rgba(0, 0, 0, .15);
   background-color: #ffffff;
   font-size: 14px;
+  border-radius: 5px;
 }
 
 input[type=number].short, select.short {
@@ -59,14 +110,18 @@ input[type=number].short, select.short {
 }
 
 select {
-  min-width: 178px;
-  max-width: 178px;
-  padding: 5px 6px;
+  text-align-last: center;
+  /* min-width: 178px; */
+  /* max-width: 178px; */
+  padding: 3px 5px;
   position: relative;
   border: 1px solid #cdcdcd;
   border-color: rgba(0, 0, 0, .15);
   background-color: #ffffff;
   font-size: 14px;
+  /* display: inline-block; */
+  flex: 1;
+  border-radius: 5px;
 }
 
 input[type=range] {
@@ -74,20 +129,27 @@ input[type=range] {
 }
 
 h1 {
-  margin: 0;
+  margin: 0px 0px 15px 0px;
   text-align: center;
 }
 
 .container {
-  padding: 1em;
+  padding: 1em 2em 1em 2em;
   margin: 1em auto;
-  max-width: 440px;
+  max-width: 350px;
   background: #fefefe;
   border-radius: 10px;
 }
 
 .form-control {
   margin: 0.4em 0;
+  display: flex;
+  align-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  min-height: 29px;
 }
 
 .form-wrap-control {
@@ -96,10 +158,17 @@ h1 {
   flex-wrap: inherit;
 }
 
+.detailContainerSlider {
+  flex: 3;
+}
+
+
+
 .form label {
-  min-width: 100px;
-  max-width: 100px;
-  display: inline-block;
+    min-width: 120px;
+    max-width: 120px;
+    display: inline-block;
+    flex: 1;
 }
 
 .helpbadge {
@@ -112,22 +181,24 @@ h1 {
   line-height: 10px;
   height: 13px;
   padding: 6px 6px 1px 6px;
-  text-align: center;
   min-width: 8px;
-  position: relative;
   float: right;
-}
-
-#logo_container {
-  height: 80px;
+  right: -18px;
+  top: -5px;
+  text-align: center;
+  position: relative;
 }
 
 #logo {
-  display: block;
+  display: inline-block;
   margin: 0;
   float: left;
   width: 80px;
   height: 80px;
+}
+
+.noMargins {
+  margin: 0;
 }
 
 .title {
@@ -137,6 +208,7 @@ h1 {
   text-align: left;
   line-height: normal;
   padding: 19px 0 0 0;
+  margin: 0;
 }
 
 #badges_container {
@@ -152,7 +224,7 @@ h1 {
   color: #ffffff;
   font-weight: bold;
   font-size: 12px;
-  line-height: 9px;
+  line-height: 12px;
   height: 12px;
   padding: 0 3px 0 5px;
   text-align: center;
@@ -166,17 +238,17 @@ a.badge {
 }
 
 .spin {
-  display: inline-block;
+  display: block;
   width: 1em;
   height: 1em;
-  margin-bottom: -0.2em;
   border: 0.15em solid rgba(255, 255, 255, .5);
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 1s linear infinite;
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
+  margin: 0px 5px 0px 0px;
 }
 
 @keyframes spin {
@@ -187,7 +259,7 @@ a.badge {
 
 .switch {
   position: relative;
-  display: inline-block;
+  /* display: block; */
   width: 57px;
   height: 32px;
   min-width: 0.5em !important;
@@ -204,11 +276,11 @@ a.badge {
   position: absolute;
   cursor: pointer;
   top: 0;
-  left: 0;
   right: 0;
   bottom: 0;
   background-color: #ccc;
   transition: .4s;
+  width: 57px;
 }
 
 .slider:before {
@@ -237,6 +309,7 @@ input:checked + .slider:before {
 /* Rounded sliders */
 .slider.round {
   border-radius: 32px;
+  /* width: 60px; */
 }
 
 .slider.round:before {
@@ -247,6 +320,7 @@ input:checked + .slider:before {
   display: inline;
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .comma-list li {
@@ -261,11 +335,36 @@ input:checked + .slider:before {
   content: "";
 }
 
-#color_preview, #color_name, #hue_value, #saturation_value, #brightness_value, #colortemperature_value {
-  display: inline-block;
-  min-width: 60px;
-  text-align: right;
-  min-height: 15px;
+.detailContainer {
+	flex: 1;
+	display: flex;
+	justify-content: space-between;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+}
+
+button > label {
+    display: flex !important;
+    max-width: 9999px !important;
+    min-width: 70px !important;
+    padding: 0px 10px 0px 10px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.detailContainerRightValue {
+  text-align: center;
+  flex: 1;
+}
+
+.detailSlider {
+  flex: 4;
+}
+
+.centered {
+  justify-content: center;
 }
 
 #color_preview {
@@ -301,7 +400,7 @@ input:checked + .slider:before {
 
 .tab {
   cursor: pointer;
-  padding: 10px 20px;
+  padding: 5px 15px;
   display: inline-block;
   border-width: 1px;
   border-radius: 10px 10px 0 0;

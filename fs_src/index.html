@@ -14,19 +14,24 @@
 
     <div class="container" id="header_container">
         <a class="helpbadge" href="https://github.com/mongoose-os-apps/shelly-homekit/wiki/" target="_blank">?</a>
-        <div id="logo_container">
-            <!-- logo.svg inserted below during build -->
-            <img id="logo" src="./logo.svg">
-            <h1 class="title">Shelly-<b>HomeKit</b></h1>
-            <div id="badges_container">
-                <a class="badge" id="notify_disconnected" style="display: none">Disconnected</a>
-                <a class="badge" id="notify_update" style="display: none" href="#update_container">Update</a>
-                <a class="badge" id="notify_overheat" style="display: none">Overheating</a>
-                <a class="badge" id="notify_failsafe" style="display: none">Failsafe mode</a>
+        <div>
+            <div id="logo_container" class="logoContainer">
+                <!-- first line: logo left + two lines -->
+                <img id="logo" src="./logo.svg">
+                <div class="header">
+                    <h1 class="title">Shelly-<b>HomeKit</b></h1>
+                    <div id="badges_container">
+                        <a class="badge" id="notify_disconnected" style="display: none">Disconnected</a>
+                        <a class="badge" id="notify_update" style="display: none" href="#update_container">Update</a>
+                        <a class="badge" id="notify_overheat" style="display: none">Overheating</a>
+                        <a class="badge" id="notify_failsafe" style="display: none">Failsafe mode</a>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div style="display: flex;">
-            <h1 id="device_name" class="noMargins">Loading device name...</h1>
+            <!-- second line - device name -->
+            <div style="display: flex; justify-content: center;">
+                <h1 id="device_name" class="noMargins">Loading...</h1>
+            </div>
         </div>
     </div>
 
@@ -58,7 +63,7 @@
     <div class="container" id="gs_container" style="display: none">
         <a class="helpbadge" href="https://github.com/mongoose-os-apps/shelly-homekit/wiki/General-Settings"
            target="_blank">?</a>
-        <h1>General Settings</h1>
+        <h1>General</h1>
         <div class="form">
             <div>
                 <div class="form-control">
@@ -96,7 +101,7 @@
     <div class="container" id="homekit_container" style="display: none">
         <a class="helpbadge" href="https://github.com/mongoose-os-apps/shelly-homekit/wiki/HomeKit-settings"
            target="_blank">?</a>
-        <h1>HomeKit Settings</h1>
+        <h1>HomeKit</h1>
         <div class="form">
             <div>
                 <div class="form-control">
@@ -147,7 +152,7 @@
     <div class="container" id="wifi_container" style="display: none">
         <a class="helpbadge" href="https://github.com/mongoose-os-apps/shelly-homekit/wiki/WiFi-Settings"
            target="_blank">?</a>
-        <h1>WiFi Settings</h1>
+        <h1>WiFi</h1>
 
         <div class="tab_wrapper" id="wifi_container">
             <input class="tab_radio" id="one" name="group" type="radio" checked>
@@ -338,7 +343,7 @@
     <div class="container" id="sec_container" style="display: none">
         <a class="helpbadge" href="https://github.com/mongoose-os-apps/shelly-homekit/wiki/Security-Settings"
            target="_blank">?</a>
-        <h1>Security Settings</h1>
+        <h1>Security</h1>
         <div class="form">
             <div>
                 <div class="form-control" id="sec_old_pass_container">
@@ -428,13 +433,13 @@
                         <span id="version"></span>
                     </div>
                 </div>
-                <div class="form-wrap-control">
+                <div class="form-control">
                     <label>Build:</label>
                     <div class="detailContainer">
                         <span id="fw_build"></span>
                     </div>
                 </div>
-                <div class="form-control centered" id="update_container" style="display: none">
+                <div class="form-control centered topMargin" id="update_container" style="display: none">
                     <button id="update_btn">
                         <label>
                             <span id="update_btn_spinner"></span>
@@ -453,7 +458,7 @@
                 </div>
                 <div class="form-control centered" id="revert_to_stock_container" style="display: none">
                     <button id="revert_btn">
-                        <label><span id="revert_btn_spinner"></span>Revert to factory settings</label>
+                        <label><span id="revert_btn_spinner"></span>Revert to stock</label>
                     </button>
                     <div class="form-control" id="revert_status">
                         <span id="revert_status"></span>

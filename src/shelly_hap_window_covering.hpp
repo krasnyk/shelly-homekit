@@ -95,7 +95,7 @@ class WindowCovering : public Component, public mgos::hap::Service {
 
   static const char *StateStr(State state);
 
-  void SaveState();
+  void SaveState(bool forceTgtPos);
 
   void SetInternalState(State new_state);
   void SetCurPos(float new_cur_pos, float p);

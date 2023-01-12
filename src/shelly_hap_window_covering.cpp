@@ -68,7 +68,7 @@ WindowCovering::~WindowCovering() {
     }
     out_open_->SetState(false, "dtor");
     out_close_->SetState(false, "dtor");
-    SaveState();
+    SaveState(false);
 }
 
 Status WindowCovering::Init() {
@@ -343,8 +343,15 @@ float WindowCovering::TrimPos(float pos) {
     return pos;
 }
 
-void WindowCovering::SaveState() {
+void WindowCovering::SaveState(bool forcePos = false) {
+    float oldPos = cur_pos_;
+    if (forcePos) {
+        cfg_->current_pos = tgt_pos_;
+    }
     mgos_sys_config_save(&mgos_sys_config, false /* try_once */, NULL /* msg */);
+    if (forcePos) {
+        cfg_->current_pos = oldPos;
+    }
 }
 
 void WindowCovering::SetInternalState(State new_state) {
@@ -496,7 +503,7 @@ void WindowCovering::ExecuteRampUpState() {
     }
     LOG(LL_DEBUG, ("[RampUp] Power = %.2f -> %.2f", p, cfg_->move_power));
     if (cfg_->man_cal || p >= cfg_->move_power * 0.75) {
-        SaveState();
+        SaveState(true);
         SetInternalState(State::kMoving);
     } else {
         int elapsed_us_ms = (mgos_uptime_micros() - begin_) / 1000;
@@ -610,7 +617,7 @@ void WindowCovering::RunOnce() {
             out_close_->SetState(false, ss);
             LOG(LL_DEBUG, ("Begin calibration"));
             cfg_->calibrated = false;
-            SaveState();
+            SaveState(false);
             out_open_->SetState(true, ss);
             out_close_->SetState(false, ss);
             SetInternalState(State::kCal0);
@@ -676,7 +683,7 @@ void WindowCovering::RunOnce() {
         case State::kPostCal1: {
             cfg_->calibrated = true;
             SetCurPos(kFullyClosed, -1);
-            SaveState();
+            SaveState(false);
             SetTgtPos((kFullyOpen - kFullyClosed) / 2, "postcal1");
             SetInternalState(State::kIdle);
             break;
@@ -695,7 +702,7 @@ void WindowCovering::RunOnce() {
         }
         case State::kStop: {
             Move(Direction::kNone);
-            SaveState();
+            SaveState(false);
             SetInternalState(State::kStopping);
             break;
         }

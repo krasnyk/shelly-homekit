@@ -63,6 +63,7 @@ class ShellySwitch : public Component, public mgos::hap::Service {
   void InputEventHandler(Input::Event ev, bool state);
 
   void AutoOffTimerCB();
+  void AutoAPSwitchTimerCB();
 
   void SaveState();
 
@@ -80,9 +81,11 @@ class ShellySwitch : public Component, public mgos::hap::Service {
 
   ShellySwitch(const ShellySwitch &other) = delete;
 
+  void EnableAPIfPossible(bool enableAP);
   void AddPowerMeter(uint16_t *iid);
   void PowerMeterTimerCB();
   mgos::Timer power_timer_;
+  mgos::Timer auto_ap_switch_timer_;
   mgos::hap::Characteristic *power_char_ = nullptr;
   mgos::hap::Characteristic *total_power_char_ = nullptr;
   float last_power_ = 0.0f;

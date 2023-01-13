@@ -22,6 +22,7 @@
 #include "mgos_hap_chars.hpp"
 
 #include "shelly_main.hpp"
+#include "shelly_wifi_config.hpp"
 
 namespace shelly {
 
@@ -51,7 +52,8 @@ ShellySwitch::ShellySwitch(int id, Input *in, Output *out, PowerMeter *out_pm,
       out_pm_(out_pm),
       cfg_(cfg),
       auto_off_timer_(std::bind(&ShellySwitch::AutoOffTimerCB, this)),
-      power_timer_(std::bind(&ShellySwitch::PowerMeterTimerCB, this)) {
+      power_timer_(std::bind(&ShellySwitch::PowerMeterTimerCB, this)),
+      auto_ap_switch_timer_(std::bind(&ShellySwitch::AutoAPSwitchTimerCB, this)) {
 }
 
 ShellySwitch::~ShellySwitch() {
@@ -82,11 +84,12 @@ StatusOr<std::string> ShellySwitch::GetInfoJSON() const {
   std::string res = mgos::JSONPrintStringf(
       "{id: %d, type: %d, name: %Q, svc_type: %d, valve_type: %d, in_mode: %d, "
       "in_inverted: %B, initial: %d, state: %B, auto_off: %B, "
-      "auto_off_delay: %.3f, state_led_en: %d, out_inverted: %B, hdim: %B",
+      "auto_off_delay: %.3f, state_led_en: %d, out_inverted: %B, hdim: %B, "
+      "enable_ap_switch: %B, sta_to_ap_change_delay_s: %d",
       id(), type(), (cfg_->name ? cfg_->name : ""), cfg_->svc_type,
       cfg_->valve_type, cfg_->in_mode, cfg_->in_inverted, cfg_->initial_state,
       out_->GetState(), cfg_->auto_off, cfg_->auto_off_delay,
-      cfg_->state_led_en, cfg_->out_inverted, hdim);
+      cfg_->state_led_en, cfg_->out_inverted, hdim, cfg_->enable_ap_switch, cfg_->sta_to_ap_change_delay_s);
   if (out_pm_ != nullptr) {
     auto power = out_pm_->GetPowerW();
     if (power.ok()) {
@@ -111,10 +114,11 @@ Status ShellySwitch::SetConfig(const std::string &config_json,
       config_json.c_str(), config_json.size(),
       "{name: %Q, svc_type: %d, valve_type: %d, in_mode: %d, in_inverted: %B, "
       "initial_state: %d, "
-      "auto_off: %B, auto_off_delay: %lf, state_led_en: %d, out_inverted: %B}",
+      "auto_off: %B, auto_off_delay: %lf, state_led_en: %d, out_inverted: %B, "
+      "enable_ap_switch: %B, sta_to_ap_change_delay_s: %d}",
       &cfg.name, &cfg.svc_type, &cfg.valve_type, &cfg.in_mode, &in_inverted,
       &cfg.initial_state, &cfg.auto_off, &cfg.auto_off_delay, &cfg.state_led_en,
-      &cfg.out_inverted);
+      &cfg.out_inverted, &cfg.enable_ap_switch, &cfg.sta_to_ap_change_delay_s);
   mgos::ScopedCPtr name_owner((void *) cfg.name);
   // Validation.
   if (cfg.name != nullptr && strlen(cfg.name) > 64) {
@@ -146,6 +150,12 @@ Status ShellySwitch::SetConfig(const std::string &config_json,
       (cfg_->state_led_en != -1 && cfg.state_led_en != 0 &&
        cfg.state_led_en != 1)) {
     return mgos::Errorf(STATUS_INVALID_ARGUMENT, "invalid %s", "state_led_en");
+  }
+  if (cfg.enable_ap_switch < 0 || cfg.enable_ap_switch > 1) {
+    return mgos::Errorf(STATUS_INVALID_ARGUMENT, "invalid %s", "enable_ap_switch");
+  }
+  if (cfg.sta_to_ap_change_delay_s <= 0) {
+    return mgos::Errorf(STATUS_INVALID_ARGUMENT, "invalid %s", "sta_to_ap_change_delay_s");
   }
   // Now copy over.
   if (cfg_->name != nullptr && strcmp(cfg_->name, cfg.name) != 0) {
@@ -181,6 +191,8 @@ Status ShellySwitch::SetConfig(const std::string &config_json,
   cfg_->initial_state = cfg.initial_state;
   cfg_->auto_off = cfg.auto_off;
   cfg_->auto_off_delay = cfg.auto_off_delay;
+  cfg_->enable_ap_switch = cfg.enable_ap_switch;
+  cfg_->sta_to_ap_change_delay_s = cfg.sta_to_ap_change_delay_s;
   if (cfg_->state_led_en != cfg.state_led_en) {
     cfg_->state_led_en = cfg.state_led_en;
     *restart_required = true;
@@ -203,7 +215,7 @@ Status ShellySwitch::SetState(const std::string &state_json) {
 }
 
 bool ShellySwitch::IsIdle() {
-  return !auto_off_timer_.IsValid();
+  return !auto_off_timer_.IsValid() && !auto_ap_switch_timer_.IsValid();
 }
 
 Status ShellySwitch::Init() {
@@ -267,11 +279,51 @@ void ShellySwitch::SetOutputState(bool new_state, const char *source) {
     auto_off_timer_.Clear();
   }
 
+  if (!new_state && cfg_->enable_ap_switch) {
+    // set timer for switch
+    auto_ap_switch_timer_.Reset(cfg_->sta_to_ap_change_delay_s * 1000, 0);
+    LOG(LL_INFO, ("Fired timer to autoswitch to AP in=%d seconds...", cfg_->sta_to_ap_change_delay_s));
+  }
+  if (new_state) {
+    auto_ap_switch_timer_.Clear();
+    EnableAPIfPossible(false);
+  }
+
   if (new_state == cur_state) return;
 
   for (auto *c : state_notify_chars_) {
     c->RaiseEvent();
   }
+}
+
+void ShellySwitch::EnableAPIfPossible(bool enableAP) {
+  WifiConfig wc = GetWifiConfig();
+  bool staEnabled = (wc.sta.enable || wc.sta1.enable);
+  bool apEnabled = wc.ap.enable;
+  const WifiInfo &wi = GetWifiInfo();
+
+
+  if (enableAP) {
+    if (wi.ap_running || apEnabled) return;
+    wc.ap.enable = true;
+    wc.sta.enable = wc.sta1.enable = false;
+  } else {
+    if (wi.sta_connected || wi.sta_connecting || staEnabled) return;
+    wc.ap.enable = false;
+    wc.sta.enable = true;
+  }
+  Status st = SetWifiConfig(wc);
+  if (!st.ok()) {
+    LOG(LL_INFO, ("Could not update wifi settings to AP=%d and STA=%d", wc.ap.enable ? 1 : 0, wc.sta.enable ? 1 : 0));
+  } else {
+    LOG(LL_INFO, ("Updated wifi settings to AP=%d and STA=%d", wc.ap.enable ? 1 : 0, wc.sta.enable));
+  }
+}
+
+void ShellySwitch::AutoAPSwitchTimerCB() {
+  bool cur_state = out_->GetState();
+  if (cur_state) return;
+  EnableAPIfPossible(true);
 }
 
 void ShellySwitch::AutoOffTimerCB() {

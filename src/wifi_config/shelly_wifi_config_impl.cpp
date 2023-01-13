@@ -94,6 +94,7 @@ WifiConfigManager::WifiConfigManager()
   STAConfigFromSys(mgos_sys_config.wifi.sta, cur_.sta);
   STAConfigFromSys(mgos_sys_config.wifi.sta1, cur_.sta1);
   cur_.sta_ps_mode = mgos_sys_config_get_wifi_sta_ps_mode();
+  cur_.sta_connect_timeout = mgos_sys_config_get_wifi_sta_connect_timeout();
   mgos_event_add_group_handler(
       MGOS_WIFI_EV_BASE,
       [](int ev, void *ev_data, void *arg) {
@@ -126,9 +127,13 @@ Status WifiConfigManager::SetConfig(const WifiConfig &cfg) {
   if (cfg.sta_ps_mode < 0 || cfg.sta_ps_mode > 2) {
     return mgos::Errorf(STATUS_INVALID_ARGUMENT, "Invalid %s", "sta_ps_mode");
   }
+  if (cfg.sta_connect_timeout <= 0) {
+    return mgos::Errorf(STATUS_INVALID_ARGUMENT, "Invalid %s. It cannot be negative.", "sta_connect_timeout");
+  }
   bool sta_config_changed =
       (!(cfg.sta == cur_.sta) || !(cfg.sta1 == cur_.sta1) ||
-       (cfg.sta_ps_mode != mgos_sys_config_get_wifi_sta_ps_mode()));
+       (cfg.sta_ps_mode != mgos_sys_config_get_wifi_sta_ps_mode()) ||
+       (cfg.sta_connect_timeout != mgos_sys_config_get_wifi_sta_connect_timeout()));
   ap_config_changed_ = !(cfg.ap == cur_.ap);
   LOG(LL_INFO, ("New config: %s %d %d", cfg.ToJSON().c_str(),
                 sta_config_changed, ap_config_changed_));
@@ -137,6 +142,7 @@ Status WifiConfigManager::SetConfig(const WifiConfig &cfg) {
   connect_failed_ = false;
   if (sta_config_changed) {
     mgos_sys_config_set_wifi_sta_ps_mode(new_.sta_ps_mode);
+    mgos_sys_config_set_wifi_sta_connect_timeout(new_.sta_connect_timeout);
     LOG(LL_INFO, ("Setting ps mode to %d", new_.sta_ps_mode));
     act_ = &new_;
     SetState(State::kDisconnect);
@@ -414,6 +420,10 @@ void WifiConfigManager::SaveConfig() {
   changed |= STAConfigToSys(cur_.sta1, wcfg.sta1);
   if (wcfg.sta_ps_mode != cur_.sta_ps_mode) {
     wcfg.sta_ps_mode = cur_.sta_ps_mode;
+    changed = true;
+  }
+  if (wcfg.sta_connect_timeout != cur_.sta_connect_timeout) {
+    wcfg.sta_connect_timeout = cur_.sta_connect_timeout;
     changed = true;
   }
   if (changed) {

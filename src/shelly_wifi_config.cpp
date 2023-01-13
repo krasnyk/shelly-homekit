@@ -46,11 +46,11 @@ std::string WifiConfig::ToJSON() const {
       "{ap: {enable: %B, ssid: %Q, pass: %Q}, "
       "sta: {enable: %B, ssid: %Q, pass: %Q, ip: %Q, netmask: %Q, gw: %Q}, "
       "sta1: {enable: %B, ssid: %Q, pass: %Q, ip: %Q, netmask: %Q, gw: %Q}, "
-      "sta_ps_mode: %d}",
+      "sta_ps_mode: %d, sta_connect_timeout: %d}",
       ap.enable, ap.ssid.c_str(), ap_pw.c_str(), sta.enable, sta.ssid.c_str(),
       sta_pw.c_str(), sta.ip.c_str(), sta.netmask.c_str(), sta.gw.c_str(),
       sta1.enable, sta1.ssid.c_str(), sta1_pw.c_str(), sta.ip.c_str(),
-      sta.netmask.c_str(), sta.gw.c_str(), sta_ps_mode);
+      sta.netmask.c_str(), sta.gw.c_str(), sta_ps_mode, sta_connect_timeout);
 }
 
 std::string FormatMACAddr(const uint8_t *mac, bool delims) {

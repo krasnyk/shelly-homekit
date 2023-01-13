@@ -165,7 +165,7 @@ static void AppendWifiInfoExt(std::string *res) {
       "wifi_ap_en: %B, wifi_ap_ssid: %Q, wifi_ap_pass: %Q, "
       "wifi_connecting: %B, wifi_connected: %B, wifi_conn_ssid: %Q, "
       "wifi_conn_rssi: %d, wifi_conn_ip: %Q, "
-      "wifi_status: %Q, wifi_sta_ps_mode: %d, mac_address: %Q, ",
+      "wifi_status: %Q, wifi_sta_ps_mode: %d, wifi_sta_connect_timeout: %d, mac_address: %Q, ",
       wc.sta.enable, wc.sta.ssid.c_str(), wifi_pass.c_str(),
       (unsigned int) digest[0], (unsigned int) digest[2],
       (unsigned int) digest[4], (unsigned int) digest[6], wc.sta.ip.c_str(),
@@ -174,7 +174,7 @@ static void AppendWifiInfoExt(std::string *res) {
       wc.sta1.netmask.c_str(), wc.sta1.gw.c_str(), wc.ap.enable,
       wc.ap.ssid.c_str(), wifi_ap_pass.c_str(), wi.sta_connecting,
       wi.sta_connected, wi.sta_ssid.c_str(), wi.sta_rssi, wi.sta_ip.c_str(),
-      wi.status.c_str(), wc.sta_ps_mode,
+      wi.status.c_str(), wc.sta_ps_mode, wc.sta_connect_timeout,
       GetMACAddr(true /* sta */, true /* delims */).c_str());
 }
 
@@ -536,13 +536,14 @@ static void SetWifiConfigHandler(struct mg_rpc_request_info *ri,
   json_scanf(args.p, args.len, ri->args_fmt, &ap_enable, &ap_ssid, &ap_pass,
              &sta_enable, &sta_ssid, &sta_pass, &sta_ip, &sta_netmask, &sta_gw,
              &sta1_enable, &sta1_ssid, &sta1_pass, &sta1_ip, &sta1_netmask,
-             &sta1_gw, &cfg.sta_ps_mode);
+             &sta1_gw, &cfg.sta_ps_mode, &cfg.sta_connect_timeout);
   mgos::ScopedCPtr o1(ap_ssid), o2(ap_pass);
   mgos::ScopedCPtr o3(sta_ssid), o4(sta_pass);
   mgos::ScopedCPtr o5(sta_ip), o6(sta_netmask), o7(sta_gw);
   mgos::ScopedCPtr o8(sta1_ssid), o9(sta1_pass);
   mgos::ScopedCPtr o10(sta1_ip), o11(sta1_netmask), o12(sta1_gw);
 
+  if (cfg.sta_connect_timeout <= 0) cfg.sta_connect_timeout = 15;
   if (ap_enable != -1) cfg.ap.enable = ap_enable;
   if (ap_ssid != nullptr) cfg.ap.ssid = ap_ssid;
   if (ap_pass != nullptr) cfg.ap.pass = ap_pass;
@@ -594,7 +595,8 @@ bool RPCServiceInit(HAPAccessoryServerRef *server,
                         "ip: %Q, netmask: %Q, gw: %Q}, "
                         "sta1: {enable: %B, ssid: %Q, pass: %Q, "
                         "ip: %Q, netmask: %Q, gw: %Q}, "
-                        "sta_ps_mode: %d}"),
+                        "sta_ps_mode: %d, "
+                        "sta_connect_timeout: %d}"),
                        SetWifiConfigHandler, nullptr);
   }
   mg_rpc_add_handler(c, "Shelly.GetDebugInfo", "", GetDebugInfoHandler,

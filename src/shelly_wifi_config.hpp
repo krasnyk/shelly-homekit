@@ -47,6 +47,7 @@ struct WifiConfig {
   WifiSTAConfig sta;
   WifiSTAConfig sta1;
   int sta_ps_mode = 0;
+  int sta_connect_timeout = 15;
 
   std::string ToJSON() const;
 };

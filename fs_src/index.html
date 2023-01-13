@@ -168,10 +168,10 @@
                     <div class="form">
                         <div class="form-control">
                             <label>Enable:</label>
-                            <div class="detailContainer switch">
+                            <label class="detailContainer switch">
                                 <input type="checkbox" id="wifi_en">
                                 <span class="slider round"></span>
-                            </div>
+                            </label>
                         </div>
                         <div class="form-control">
                             <label>Network:</label>
@@ -187,10 +187,10 @@
                         </div>
                         <div class="form-control">
                             <label>Static IP:</label>
-                            <div class="detailContainer switch">
+                            <label class="detailContainer switch">
                                 <input type="checkbox" id="wifi_ip_en">
                                 <span class="slider round"></span>
-                            </div>
+                            </label>
                         </div>
                         <div id="wifi_ip_container">
                             <div class="form-control">
@@ -211,6 +211,12 @@
                                     <input type="text" id="wifi_gw">
                                 </div>
                             </div>
+                            <div class="form-control">
+                                <label>Connection switch (s):</label>
+                                <label class="detailContainer">
+                                    <input type="number" id="wifi_sta_connect_timeout">
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -218,10 +224,10 @@
                     <div class="form">
                         <div class="form-control">
                             <label>Enable:</label>
-                            <div class="detailContainer switch">
+                            <label class="detailContainer switch">
                                 <input type="checkbox" id="wifi1_en">
                                 <span class="slider round"></span>
-                            </div>
+                            </label>
                         </div>
                         <div class="form-control">
                             <label>Network:</label>
@@ -237,10 +243,10 @@
                         </div>
                         <div class="form-control">
                             <label>Static IP:</label>
-                            <div class="detailContainer switch">
+                            <label class="detailContainer switch">
                                 <input type="checkbox" id="wifi1_ip_en">
                                 <span class="slider round"></span>
-                            </div>
+                            </label>
                         </div>
                         <div id="wifi1_ip_container">
                             <div class="form-control">
@@ -268,10 +274,10 @@
                     <div class="form">
                         <div class="form-control">
                             <label>Enable permanently:</label>
-                            <div class="detailContainer switch">
+                            <label class="detailContainer switch">
                                 <input type="checkbox" id="wifi_ap_en">
                                 <span class="slider round"></span>
-                            </div>
+                            </label>
                         </div>
                         <div class="form-control">
                             <label>Network:</label>
@@ -450,7 +456,9 @@
                         <div class="form-control centered">
                             <div>
                                 <label for="fw_select_file" id="fw_upd_text" class="custom-file-upload">
-                                    <input type="file" id="fw_select_file" name="file" accept=".zip" data-changed="false"><span id="fw_spinner"></span>Update from file...
+                                    <input type="file" id="fw_select_file" name="file" accept=".zip" data-changed="false">
+                                    <span id="fw_spinner"></span>
+                                    <span id="fw_file_text">Update from file...</span>
                                 </label>
                             </div>
                         </div>
@@ -502,11 +510,11 @@
         <div class="form">
             <div>
                 <div class="form-control" id="state_container">
-                    <label for="state">Status:</label>
-                    <div class="detailContainer switch">
+                    <label>Status:</label>
+                    <label class="detailContainer switch">
                         <input type="checkbox" id="state">
                         <span class="slider round"></span>
-                    </div>
+                    </label>
                 </div>
                 <div class="form-control" id="power_stats_container" style="display: none;">
                     <label for="power_stats">Power:</label>
@@ -557,11 +565,11 @@
                         </div>
                     </div>
                     <div class="form-control" id="in_inverted_container" style="display: none">
-                        <label for="in_inverted">Inverted Input:</label>
-                        <div class="detailContainer switch">
+                        <label>Inverted Input:</label>
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="in_inverted">
                             <span class="slider round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="form-control">
                         <label for="initial">Initial state:</label>
@@ -575,21 +583,21 @@
                         </div>
                     </div>
                     <div class="form-control">
-                        <label for="out_inverted">Inverted Output:</label>
-                        <div class="detailContainer switch">
+                        <label>Inverted Output:</label>
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="out_inverted">
                             <span class="slider round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="form-control">
-                        <label for="auto_off">Auto Off:</label>
-                        <div class="detailContainer switch">
+                        <label>Auto Off:</label>
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="auto_off">
                             <span class="slider round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="form-control" id="auto_off_delay_container">
-                        <label for="auto_off_delay">Auto Off Delay:</label>
+                        <label>Auto Off Delay:</label>
                         <div class="detailContainer">
                             <input type="text" id="auto_off_delay" placeholder="D:HH:MM:SS.sss" required
                                    pattern="[0-9]+:(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}">
@@ -597,9 +605,24 @@
                     </div>
                     <div class="form-control" id="state_led_en_container">
                         <label for="state_led_en">State LED:</label>
-                        <div class="detailContainer switch">
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="state_led_en">
                             <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label>Auto AP switch:</label>
+                        <label class="detailContainer switch">
+                            <input type="checkbox" id="enable_ap_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div id="enable_ap_switch_container">
+                        <div class="form-control">
+                            <label>After delay (s):</label>
+                            <div class="detailContainer">
+                                <input type="number" id="sta_to_ap_change_delay_s" style="width: 4em; min-width: 2em;">
+                            </div>
                         </div>
                     </div>
                     <div class="button-container">
@@ -650,11 +673,11 @@
                     </div>
                 </div>
                 <div class="form-control">
-                    <label for="inverted">Inverted Input:</label>
-                    <div class="detailContainer switch">
+                    <label>Inverted Input:</label>
+                    <label class="detailContainer switch">
                         <input type="checkbox" id="inverted">
                         <span class="slider round"></span>
-                    </div>
+                    </label>
                 </div>
                 <div class="form-control">
                     <label>Last Event:</label>
@@ -730,11 +753,11 @@
                     </div>
                 </div>
                 <div class="form-control">
-                    <label for="inverted">Inverted Input:</label>
-                    <div class="detailContainer switch">
+                    <label>Inverted Input:</label>
+                    <label class="detailContainer switch">
                         <input type="checkbox" id="inverted">
                         <span class="slider round"></span>
-                    </div>
+                    </label>
                 </div>
                 <div class="form-control">
                     <label>Input Mode:</label>
@@ -803,12 +826,10 @@
                     <div id="man_cal_warning" class="detailContainer">
                         &#9888;&#65039; Caution
                     </div>
-                    
-                            <label class="detailContainer switch">
-                            <input type="checkbox" id="man_cal">
-                            <span class="slider round"></span>
-                        </label>
-  
+                    <label class="detailContainer switch">
+                        <input type="checkbox" id="man_cal">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
                 <div id="man_cal_settings">
                     <div class="form-control">
@@ -837,17 +858,17 @@
                 </div>
                 <div class="form-control">
                     <label>Swap Inputs:</label>
-                    <div class="detailContainer switch">
+                    <label class="detailContainer switch">
                         <input type="checkbox" id="swap_inputs">
                         <span class="slider round"></span>
-                    </div>
+                    </label>
                 </div>
                 <div class="form-control">
                     <label>Swap Outputs:</label>
-                    <div class="detailContainer switch">
+                    <label class="detailContainer switch">
                         <input type="checkbox" id="swap_outputs">
                         <span class="slider round"></span>
-                    </div>
+                    </label>
                 </div>
                 <div class="button-container" id="btns">
                     <button id="save_btn">
@@ -974,11 +995,11 @@
         <div class="form">
             <div>
                 <div class="form-control" id="state_container">
-                    <label for="state">Status:</label>
-                    <div class="detailContainer switch">
+                    <label>Status:</label>
+                    <label class="detailContainer switch">
                         <input type="checkbox" id="state">
                         <span class="slider round"></span>
-                    </div>
+                    </label>
                 </div>
                 <div class="form-control" id="power_stats_container" style="display: none;">
                     <label for="power_stats">Power:</label>
@@ -1036,10 +1057,10 @@
                     </div>
                     <div class="form-control" id="svc_hidden_container">
                         <label>HAP Service Hidden:</label>
-                        <div class="detailContainer switch">
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="svc_hidden">
                             <span class="slider round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="form-control" id="in_mode_container">
                         <label for="in_mode">Input Mode:</label>
@@ -1054,11 +1075,11 @@
                         </div>
                     </div>
                     <div class="form-control" id="in_inverted_container" style="display: none">
-                        <label for="in_inverted">Inverted Input:</label>
-                        <div class="detailContainer switch">
+                        <label>Inverted Input:</label>
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="in_inverted">
                             <span class="slider round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="form-control">
                         <label for="initial">Initial state:</label>
@@ -1073,10 +1094,10 @@
                     </div>
                     <div class="form-control">
                         <label for="auto_off">Auto off:</label>
-                        <div class="detailContainer switch">
+                        <label class="detailContainer switch">
                             <input type="checkbox" id="auto_off">
                             <span class="slider round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="form-control" id="auto_off_delay_container">
                         <label for="auto_off_delay">Auto off delay:</label>
